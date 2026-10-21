@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기술·가정 | 위험에 빠진 의복 관리 연구소 & 수행평가 포스터 생성기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font (Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; }
+        .tab-btn.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+        
+        /* 방탈출 단계별 화면 전환 애니메이션 */
+        .escape-screen { display: none; }
+        .escape-screen.active { display: block; animation: fadeIn 0.35s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 키 패드 및 슬롯 스타일 */
+        .key-slot {
+            width: 36px; height: 36px; display: grid; place-items: center;
+            border: 2px dashed #cbd5e1; border-radius: 8px; color: #94a3b8; background: #f1f5f9; font-weight: 900; transition: all 0.25s;
+        }
+        .key-slot.got {
+            border-style: solid; border-color: #f59e0b; color: #4338ca; background: #fef3c7; transform: rotate(-3deg) scale(1.08);
+        }
+
+        /* 폭죽 효과 */
+        .confetti {
+            position: fixed; top: -20px; z-index: 999; width: 10px; height: 16px; pointer-events: none; animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translate3d(var(--drift), 110vh, 0) rotate(720deg); } }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-600 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-blue-200 text-sm font-medium mb-1">
+                    <span><i class="fa-solid fa-book-open mr-1"></i>중학교 기술·가정 2</span>
+                    <span>•</span>
+                    <span>Ⅱ. 의복 재료의 이해와 관리</span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight">
+                    🧥 스마트 의복 케어 & 방탈출 추리게임
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- QR 코드 공유 버튼 -->
+                <button onclick="openQrModal()" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-xs md:text-sm px-4 py-2.5 rounded-xl shadow transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-qrcode text-base"></i>
+                    <span>📱 QR코드 공유</span>
+                </button>
+
+                <div class="flex items-center bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-xs md:text-sm">
+                    <i class="fa-solid fa-user-graduate text-yellow-300 mr-2 text-lg"></i>
+                    <div>
+                        <span class="block text-blue-100 text-xs">수행평가 작성자 예시</span>
+                        <span class="font-bold text-white">2학년 7반 30번 김혜린</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 네비게이션 -->
+        <div class="bg-white border-b border-slate-200 text-slate-600 shadow-inner">
+            <div class="max-w-6xl mx-auto px-4 flex overflow-x-auto no-scrollbar space-x-2 md:space-x-6 text-sm md:text-base">
+                <button onclick="switchTab('escape')" id="tab-escape" class="tab-btn active py-3.5 px-3 flex items-center space-x-2 whitespace-nowrap hover:text-blue-600 transition">
+                    <i class="fa-solid fa-key text-amber-500"></i>
+                    <span>🔒 1. 방탈출 미션 게임</span>
+                </button>
+                <button onclick="switchTab('library')" id="tab-library" class="tab-btn py-3.5 px-3 flex items-center space-x-2 whitespace-nowrap hover:text-blue-600 transition">
+                    <i class="fa-solid fa-book-bookmark text-emerald-500"></i>
+                    <span>📚 2. 의복 지식백과</span>
+                </button>
+                <button onclick="switchTab('poster')" id="tab-poster" class="tab-btn py-3.5 px-3 flex items-center space-x-2 whitespace-nowrap hover:text-blue-600 transition">
+                    <i class="fa-solid fa-palette text-purple-500"></i>
+                    <span>🎨 3. 친환경 포스터 생성기 (Canva)</span>
+                </button>
+                <button onclick="switchTab('rubric')" id="tab-rubric" class="tab-btn py-3.5 px-3 flex items-center space-x-2 whitespace-nowrap hover:text-blue-600 transition">
+                    <i class="fa-solid fa-clipboard-check text-rose-500"></i>
+                    <span>📋 4. 수행평가 채점기준표</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- ================= 1. 방탈출 미션 게임 탭 (단계별 순차 진행) ================= -->
+        <section id="sec-escape" class="space-y-6">
+            
+            <!-- 방탈출 상단 현황판 -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                    <div>
+                        <span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">비상 상황 발생</span>
+                        <h2 class="text-xl font-black text-slate-900 mt-1">🧪 위험에 빠진 의복 관리 연구소</h2>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-1.5 rounded-full font-black text-sm" id="escape-timer">
+                            ⏱ 30:00
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-1.5 rounded-full font-black text-sm" id="escape-progress-text">
+                            미션 달성: 0 / 7
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 프로그레스 바 -->
+                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+                    <div id="escape-progress-bar" class="bg-gradient-to-r from-emerald-500 via-indigo-500 to-amber-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+
+                <!-- 수집한 암호 숫자 슬롯 -->
+                <div class="flex items-center space-x-2 text-xs md:text-sm font-bold text-slate-600 overflow-x-auto pt-1">
+                    <span>🔑 수집한 암호:</span>
+                    <div class="key-slot" data-slot="0">?</div>
+                    <div class="key-slot" data-slot="1">?</div>
+                    <div class="key-slot" data-slot="2">?</div>
+                    <div class="key-slot" data-slot="3">?</div>
+                    <div class="key-slot" data-slot="4">?</div>
+                    <div class="key-slot" data-slot="5">?</div>
+                    <div class="key-slot" data-slot="6">?</div>
+                </div>
+            </div>
+
+            <!-- 미션 별 화면 (한 화면에 문제 하나씩) -->
+            <div id="escape-screens-container" class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                
+                <!-- Intro Screen -->
+                <div class="escape-screen active" id="scr-intro">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">작전 브리핑</span>
+                        <h3 class="text-2xl font-black text-slate-900">《위험에 빠진 의복 관리 연구소》</h3>
+                        <p class="text-slate-600 leading-relaxed text-sm md:text-base">
+                            의복 관리 연구소의 중앙 메인 시스템이 고장 났다! 섬유 데이터 정보가 심각하게 뒤섞이고 세탁 프로그램 제어반에 오류가 발생했다. 연구소 전체 비상 문이 모두 잠기기 전까지 <strong>7개의 미션</strong>을 순서대로 해결하고 탈출 암호를 찾아야 한다!
+                        </p>
+                        
+                        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl text-xs md:text-sm text-amber-900 space-y-1">
+                            <div class="font-bold mb-1">🚨 연구소 작전 규칙</div>
+                            <div>• 총 7개의 미션을 해결한다.</div>
+                            <div>• 각 미션의 정답을 맞혀 탈출 암호 숫자를 수집한다.</div>
+                            <div>• 마지막에 모은 암호로 제어장치를 해제하면 탈출 성공!</div>
+                        </div>
+
+                        <button onclick="startEscapeGame()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-xl shadow-md transition text-base mt-2">
+                            🚀 연구소 미션 시작하기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mission 1 -->
+                <div class="escape-screen" id="scr-q1">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 01 · 세탁 사고 조사실</span>
+                        <h3 class="text-xl font-bold text-slate-900">사라진 울 니트의 범인</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            세탁 후 줄어든 울 니트가 발견되었다. 연구원은 사고 원인을 밝혀야 한다.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q1. 양모 니트가 세탁 후 줄어드는 주된 원인은?</p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q1" value="1" class="mr-3 accent-indigo-600"> ① 양모 섬유가 물에 녹기 때문
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q1" value="2" class="mr-3 accent-indigo-600"> ② 털비늘이 수분·열·마찰에 의해 서로 엉키기 때문
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q1" value="3" class="mr-3 accent-indigo-600"> ③ 양모 섬유가 물을 흡수하지 못하기 때문
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q1" value="4" class="mr-3 accent-indigo-600"> ④ 세제가 양모 섬유를 모두 녹이기 때문
+                            </label>
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ1()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(1)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-1" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 양모 섬유 표면의 구조와 세탁 조건(축융성)을 생각해 보자.
+                        </div>
+                        <div id="esc-fb-1" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Mission 2 -->
+                <div class="escape-screen" id="scr-q2">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 02 · 섬유 감별실</span>
+                        <h3 class="text-xl font-bold text-slate-900">가짜 섬유를 찾아라</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            섬유 카드 5장 중 천연 섬유의 특징과 맞지 않는 카드가 하나 있다.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q2. 천연 섬유와 특징의 연결이 옳지 않은 것은?</p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q2" value="1" class="mr-3 accent-indigo-600"> ① 면 — 부드러운 촉감, 삶기 가능
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q2" value="2" class="mr-3 accent-indigo-600"> ② 마 — 우수한 통기성, 빠른 건조
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q2" value="3" class="mr-3 accent-indigo-600"> ③ 모 — 우수한 보온성, 축융성
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q2" value="4" class="mr-3 accent-indigo-600"> ④ 견 — 고유한 광택, 변색 주의
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q2" value="5" class="mr-3 accent-indigo-600"> ⑤ 면 — 석유를 원료로 하며 구김이 적음
+                            </label>
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ2()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(2)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-2" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 면의 원료가 무엇인지 떠올려 보자.
+                        </div>
+                        <div id="esc-fb-2" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Mission 3 -->
+                <div class="escape-screen" id="scr-q3">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 03 · 합성 섬유 보안실</span>
+                        <h3 class="text-xl font-bold text-slate-900">정체불명의 섬유</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            연구소 컴퓨터에 섬유의 특징만 남아 있다. 섬유의 정체를 밝혀라.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q3. 구김이 적고 내구성이 뛰어나며 세탁 후 관리가 비교적 편리하다. 일반 의류와 혼방 직물에 많이 사용되는 합성 섬유는?</p>
+                        
+                        <div class="pt-1">
+                            <input type="text" id="esc-input-q3" placeholder="답 입력 (예: 폴리에스터)" class="w-full max-w-xs px-3 py-2.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ3()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(3)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-3" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 일상에서 입는 여러 옷에 널리 사용되는 대표적인 합성 섬유다.
+                        </div>
+                        <div id="esc-fb-3" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Mission 4 -->
+                <div class="escape-screen" id="scr-q4">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 04 · 옷감 제작실</span>
+                        <h3 class="text-xl font-bold text-slate-900">직조 장치 복구</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            옷감 제작 장치가 멈췄다. 날실과 씨실을 이용한 옷감의 이름을 입력해야 한다.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q4. 날실과 씨실을 직각으로 교차시켜 만든 옷감은?</p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q4" value="1" class="mr-3 accent-indigo-600"> ① 편성물
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q4" value="2" class="mr-3 accent-indigo-600"> ② 펠트
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q4" value="3" class="mr-3 accent-indigo-600"> ③ 부직포
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q4" value="4" class="mr-3 accent-indigo-600"> ④ 직물
+                            </label>
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ4()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(4)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-4" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 실을 고리 모양으로 엮어 만드는 옷감과 구별해 보자.
+                        </div>
+                        <div id="esc-fb-4" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Mission 5 -->
+                <div class="escape-screen" id="scr-q5">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 05 · 세탁 프로그램실</span>
+                        <h3 class="text-xl font-bold text-slate-900">오류 난 세탁 순서</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            세탁기가 잘못된 순서로 작동하려 한다. 올바른 세탁 프로그램을 선택하라.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q5. 물세탁의 올바른 순서는?</p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q5" value="1" class="mr-3 accent-indigo-600"> ① 본 빨래 → 애벌빨래 → 탈수 → 헹구기
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q5" value="2" class="mr-3 accent-indigo-600"> ② 애벌빨래 → 본 빨래 → 헹구기 → 탈수 및 건조
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q5" value="3" class="mr-3 accent-indigo-600"> ③ 헹구기 → 애벌빨래 → 본 빨래 → 탈수
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q5" value="4" class="mr-3 accent-indigo-600"> ④ 애벌빨래 → 헹구기 → 탈수 → 본 빨래
+                            </label>
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ5()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(5)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-5" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 본격적으로 세탁하기 전에 오염을 먼저 완화하는 단계가 있다.
+                        </div>
+                        <div id="esc-fb-5" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Mission 6 -->
+                <div class="escape-screen" id="scr-q6">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 06 · 습기 차단 보관실</span>
+                        <h3 class="text-xl font-bold text-slate-900">장마의 흔적을 지워라</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            장마철이 지나자 보관실의 의복에 습기가 남아 있다. 연구소의 관리 기록에 들어갈 용어를 찾아라.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q6. 장마철 이후 의복을 바람에 쐬어 습기를 제거하는 방법은 무엇인가?</p>
+                        
+                        <div class="pt-1">
+                            <input type="text" id="esc-input-q6" placeholder="답 입력 (예: 거풍 또는 바람쐬기)" class="w-full max-w-xs px-3 py-2.5 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ6()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(6)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-6" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 의복을 바람에 쐬어 주는 보관 관리 방법이다.
+                        </div>
+                        <div id="esc-fb-6" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Mission 7 -->
+                <div class="escape-screen" id="scr-q7">
+                    <div class="space-y-4">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">미션 07 · 최종 다림질 통제실</span>
+                        <h3 class="text-xl font-bold text-slate-900">마지막 잠금장치</h3>
+                        <div class="p-3 bg-slate-50 border rounded-xl text-xs text-slate-600">
+                            마지막 잠금장치는 소재에 맞는 다림질 방법을 알아야 열린다.
+                        </div>
+                        <p class="font-extrabold text-slate-800">Q7. 모섬유를 다림질할 때 올바른 방법은?</p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q7" value="1" class="mr-3 accent-indigo-600"> ① 가장 높은 온도로 빠르게 다린다.
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q7" value="2" class="mr-3 accent-indigo-600"> ② 겉면에 헝겊을 덮고 다린다.
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q7" value="3" class="mr-3 accent-indigo-600"> ③ 물을 전혀 사용하지 않고 강하게 누른다.
+                            </label>
+                            <label class="flex items-center p-3 border rounded-xl hover:bg-indigo-50/50 cursor-pointer transition">
+                                <input type="radio" name="esc-q7" value="4" class="mr-3 accent-indigo-600"> ④ 모든 합성 섬유와 같은 온도로 다린다.
+                            </label>
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="checkQ7()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">정답 확인</button>
+                            <button onclick="toggleEscapeHint(7)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-4 py-2.5 rounded-xl text-sm transition">힌트 💡</button>
+                        </div>
+                        <div id="esc-hint-7" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                            💡 힌트: 모섬유는 열에 의한 손상을 줄이도록 주의해야 한다.
+                        </div>
+                        <div id="esc-fb-7" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Final Screen: Doorlock Pad -->
+                <div class="escape-screen" id="scr-final">
+                    <div class="text-center space-y-4">
+                        <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">🔓 중앙 제어실 전자 도어락</span>
+                        <h3 class="text-2xl font-black text-slate-900">모든 미션을 완수했습니다!</h3>
+                        <p class="text-xs md:text-sm text-slate-600">수집한 7자리 탈출 암호를 키패드로 입력하고 출입문을 해제하세요.</p>
+                        
+                        <div id="doorlock-display" class="text-3xl font-black tracking-widest text-indigo-600 font-mono py-2">_______</div>
+
+                        <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                            <button onclick="pressPad('1')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">1</button>
+                            <button onclick="pressPad('2')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">2</button>
+                            <button onclick="pressPad('3')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">3</button>
+                            <button onclick="pressPad('4')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">4</button>
+                            <button onclick="pressPad('5')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">5</button>
+                            <button onclick="pressPad('6')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">6</button>
+                            <button onclick="pressPad('7')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">7</button>
+                            <button onclick="pressPad('8')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">8</button>
+                            <button onclick="pressPad('9')" class="py-3 bg-slate-100 hover:bg-slate-200 font-black text-xl rounded-xl">9</button>
+                            <button onclick="clearPad()" class="col-span-3 py-2.5 bg-red-100 text-red-700 hover:bg-red-200 font-bold text-sm rounded-xl">C (지우기)</button>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-center gap-3 pt-3">
+                            <button onclick="unlockDoor()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-3 rounded-xl shadow-lg transition text-base">
+                                모든 미션의 정답 확인
+                            </button>
+                            <button onclick="restartEscapeGame()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-6 py-3 rounded-xl transition text-sm">
+                                처음부터 다시 도전
+                            </button>
+                        </div>
+
+                        <div id="esc-fb-final" class="hidden p-4 rounded-xl text-sm font-bold mt-3"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. 의복 지식백과 탭 ================= -->
+        <section id="sec-library" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                        <i class="fa-solid fa-graduation-cap text-emerald-600 mr-2"></i> 의복 재료 & 세탁 관리 대백과
+                    </h2>
+                    <p class="text-xs text-slate-500">미래엔 기술·가정2 교과서 70~76쪽 내용을 한눈에 학습하세요.</p>
+                </div>
+                <!-- 필터 버튼 -->
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <button onclick="filterLibrary('all')" class="lib-filter active bg-slate-800 text-white px-3 py-1.5 rounded-lg font-medium transition">전체보기</button>
+                    <button onclick="filterLibrary('natural')" class="lib-filter bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">천연섬유</button>
+                    <button onclick="filterLibrary('manmade')" class="lib-filter bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">인조섬유</button>
+                    <button onclick="filterLibrary('fabric')" class="lib-filter bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">옷감 4종</button>
+                    <button onclick="filterLibrary('laundry')" class="lib-filter bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium transition">세탁·다림질</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="library-cards-container">
+                <!-- 지식 카드가 JS로 동적 생성됩니다 -->
+            </div>
+        </section>
+
+        <!-- ================= 3. 친환경 포스터 생성기 (Canva) 탭 ================= -->
+        <section id="sec-poster" class="hidden space-y-6">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-bold">수행평가 30점 만점 모드</span>
+                    <h2 class="text-2xl font-black mt-1">🎨 친환경 세탁 케어 포스터 내용 생성기</h2>
+                    <p class="text-purple-100 text-sm mt-1">
+                        아래 양식을 채우고 <b>[1초 전체 복사]</b> 후 Canva(캔바)로 이동해 인포그래픽 포스터를 디자인하세요!
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0 flex items-center space-x-3">
+                    <button onclick="fillPosterExamples()" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center space-x-1">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>✨ 예시 내용 채우기</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 포스터 입력 폼 (2열) -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                    
+                    <!-- 실시간 예상 점수 배지 -->
+                    <div class="bg-purple-50 border border-purple-200 p-4 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-calculator text-purple-600 text-xl"></i>
+                            <div>
+                                <span class="text-xs text-purple-700 font-bold block">수행평가 실시간 진단</span>
+                                <span class="text-sm font-semibold text-slate-800">채점기준 3개 항목 충족도</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-2xl font-black text-purple-700" id="live-rubric-score">30 / 30</span>
+                            <span class="text-xs font-bold text-emerald-600 block" id="live-score-status">✨ 만점 수준 충족!</span>
+                        </div>
+                    </div>
+
+                    <!-- 인적 사항 입력 -->
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center">
+                            <i class="fa-solid fa-id-card text-blue-500 mr-2"></i> 1. 작성자 인적사항
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">학번 및 이름</label>
+                                <input type="text" id="poster-student" value="2학년 7반 30번 김혜린" oninput="updatePosterPreview()" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">포스터 메인 캐치프레이즈</label>
+                                <input type="text" id="poster-slogan" value="지구를 살리는 스마트 옷 관리 & 친환경 세탁 케어법" oninput="updatePosterPreview()" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 항목 1: 섬유의 특성 이해하기 -->
+                    <div class="border-b border-slate-100 pb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-base font-bold text-slate-800 flex items-center">
+                                <i class="fa-solid fa-shirt text-emerald-500 mr-2"></i> 2. 섬유의 특성 이해하기
+                            </h3>
+                            <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-0.5 rounded-full">채점 10점 (3가지 이상 작성시 만점)</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">선택한 섬유의 명칭과 그에 따른 핵심 특성을 제시합니다.</p>
+                        
+                        <div class="space-y-3" id="fiber-inputs-container">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="면 섬유" class="fiber-name px-3 py-2 border rounded-lg text-sm" placeholder="섬유명 (예: 면)" oninput="updatePosterPreview()">
+                                <input type="text" value="흡습성이 뛰어남, 물에 젖으면 강도가 세져 삶기 가능" class="fiber-desc md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="섬유 특성 설명" oninput="updatePosterPreview()">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="양모(모) 섬유" class="fiber-name px-3 py-2 border rounded-lg text-sm" placeholder="섬유명 (예: 모)" oninput="updatePosterPreview()">
+                                <input type="text" value="보온성이 우수하나 축융성으로 열·습기·마찰 시 줄어듦" class="fiber-desc md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="섬유 특성 설명" oninput="updatePosterPreview()">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="폴리에스터" class="fiber-name px-3 py-2 border rounded-lg text-sm" placeholder="섬유명 (예: 폴리에스터)" oninput="updatePosterPreview()">
+                                <input type="text" value="합성섬유 중 가장 많이 사용, 구김이 적고 질김" class="fiber-desc md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="섬유 특성 설명" oninput="updatePosterPreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 항목 2: 섬유 특성에 맞는 세탁 방법 제시하기 -->
+                    <div class="border-b border-slate-100 pb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-base font-bold text-slate-800 flex items-center">
+                                <i class="fa-solid fa-soap text-blue-500 mr-2"></i> 3. 섬유 특성에 맞는 세탁 방법
+                            </h3>
+                            <span class="text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-0.5 rounded-full">채점 10점 (3가지 이상 작성시 만점)</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">각 섬유에 안전하고 알맞은 맞춤 세탁 및 다림질 방법을 제시합니다.</p>
+                        
+                        <div class="space-y-3" id="wash-inputs-container">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="면·마 섬유 세탁" class="wash-target px-3 py-2 border rounded-lg text-sm" placeholder="대상 (예: 면 제품)" oninput="updatePosterPreview()">
+                                <input type="text" value="물세탁과 고온 삶기 가능, 180~210℃ 다림질" class="wash-method md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="세탁 및 관리법" oninput="updatePosterPreview()">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="모·견 섬유 세탁" class="wash-target px-3 py-2 border rounded-lg text-sm" placeholder="대상 (예: 니트, 실크)" oninput="updatePosterPreview()">
+                                <input type="text" value="드라이클리닝 권장, 다림질 시 140~160℃ 헝겊을 덮음" class="wash-method md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="세탁 및 관리법" oninput="updatePosterPreview()">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="합성섬유 세탁" class="wash-target px-3 py-2 border rounded-lg text-sm" placeholder="대상 (예: 패딩, 스포츠의류)" oninput="updatePosterPreview()">
+                                <input type="text" value="미지근한 물세탁, 열에 약하므로 고온 건조기 사용 금지" class="wash-method md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="세탁 및 관리법" oninput="updatePosterPreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 항목 3: 건강과 환경을 고려한 실천 방안 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-base font-bold text-slate-800 flex items-center">
+                                <i class="fa-solid fa-leaf text-emerald-600 mr-2"></i> 4. 건강 & 환경 고려 세탁·관리 실천방안
+                            </h3>
+                            <span class="text-xs bg-purple-100 text-purple-700 font-bold px-2.5 py-0.5 rounded-full">채점 10점 (3가지 이상 작성시 만점)</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">수질 오염을 줄이고 옷을 오래 입기 위한 친환경 관리 행동 노하우입니다.</p>
+                        
+                        <div class="space-y-3" id="eco-inputs-container">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="세제 정량 사용 & 애벌빨래" class="eco-title px-3 py-2 border rounded-lg text-sm" placeholder="실천 항목 제목" oninput="updatePosterPreview()">
+                                <input type="text" value="세제 과다 사용은 수질 오염 유발. 애벌빨래로 세탁 시간과 세제 절약" class="eco-detail md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="세부 실천 방법" oninput="updatePosterPreview()">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="드라이클리닝 커버 제거 거풍" class="eco-title px-3 py-2 border rounded-lg text-sm" placeholder="실천 항목 제목" oninput="updatePosterPreview()">
+                                <input type="text" value="드라이 후 비닐 커버를 벗겨 잔류 휘발성 유기용제를 완전히 날려 보관" class="eco-detail md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="세부 실천 방법" oninput="updatePosterPreview()">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <input type="text" value="올바른 건조 및 보관법" class="eco-title px-3 py-2 border rounded-lg text-sm" placeholder="실천 항목 제목" oninput="updatePosterPreview()">
+                                <input type="text" value="니트류는 뉘어서 말리고, 옷장 속 습기 제거를 위해 방습제 사용 및 거풍" class="eco-detail md:col-span-2 px-3 py-2 border rounded-lg text-sm" placeholder="세부 실천 방법" oninput="updatePosterPreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Canva 복사 및 안내 박스 (1열) -->
+                <div class="space-y-6">
+                    <!-- 복사될 텍스트 렌더링 미리보기 카드 -->
+                    <div class="bg-slate-900 text-slate-100 p-5 rounded-2xl shadow-md border border-slate-800">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs text-slate-400 font-bold uppercase"><i class="fa-solid fa-copy mr-1"></i> Canva 복사용 완성 텍스트</span>
+                            <span class="text-xs bg-purple-900 text-purple-200 px-2 py-0.5 rounded">준비 완료</span>
+                        </div>
+                        <pre id="poster-text-preview" class="text-xs whitespace-pre-wrap font-sans leading-relaxed text-slate-300 max-h-80 overflow-y-auto bg-slate-950 p-3 rounded-lg border border-slate-800"></pre>
+                        
+                        <!-- 1초 복사 버튼 -->
+                        <button onclick="copyPosterText()" class="w-full mt-4 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-paste text-lg"></i>
+                            <span>📋 1초 만에 전체 내용 복사하기</span>
+                        </button>
+                    </div>
+
+                    <!-- Canva(캔바) 이동 및 사용 안내 카드 -->
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200 shadow-sm space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xl font-black">
+                                C
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-slate-900">Canva(캔바) 포스터 만들기</h4>
+                                <p class="text-xs text-purple-700">복사한 내용으로 예쁜 인포그래픽 제작</p>
+                            </div>
+                        </div>
+
+                        <ol class="text-xs text-slate-700 space-y-2 list-decimal list-inside font-medium bg-white p-3 rounded-xl border border-purple-100">
+                            <li>위의 <b>[1초 전체 내용 복사하기]</b> 버튼을 누릅니다.</li>
+                            <li>아래 <b>[Canva 바로가기]</b>로 이동합니다.</li>
+                            <li>Canva 검색창에 <b>'세탁 인포그래픽'</b> 또는 <b>'환경 포스터'</b>를 검색하세요.</li>
+                            <li>원하는 템플릿의 글자 상자에 <b>[Ctrl + V]</b>로 붙여넣고 디자인을 완성합니다!</li>
+                        </ol>
+
+                        <a href="https://www.canva.com" target="_blank" class="block w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow text-sm transition">
+                            <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Canva(캔바) 바로가기
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 4. 수행평가 채점기준표 (Rubric) 탭 ================= -->
+        <section id="sec-rubric" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                
+                <div class="border-b border-slate-200 pb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="text-xs text-rose-600 font-bold mb-1">기술·가정2 수행평가 공식 채점표</div>
+                        <h2 class="text-2xl font-black text-slate-900">📋 의복 재료와 세탁 관리 수행평가 루브릭</h2>
+                    </div>
+
+                    <div class="flex items-center space-x-3 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700">
+                        <label class="flex items-center space-x-1.5 cursor-default">
+                            <input type="checkbox" checked disabled class="w-4 h-4 text-blue-600 rounded">
+                            <span>교사 관찰 및 기록</span>
+                        </label>
+                        <span class="text-slate-300">|</span>
+                        <label class="flex items-center space-x-1.5 cursor-default">
+                            <input type="checkbox" checked disabled class="w-4 h-4 text-blue-600 rounded">
+                            <span>자기평가</span>
+                        </label>
+                        <span class="text-slate-300">|</span>
+                        <label class="flex items-center space-x-1.5 cursor-default opacity-40">
+                            <input type="checkbox" disabled class="w-4 h-4 rounded">
+                            <span class="line-through">동료평가(삭제)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-300 shadow-sm">
+                    <table class="w-full text-left text-xs md:text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300 text-center">
+                                <th class="p-3.5 border-r border-slate-300 w-1/4">평가 요소(배점)</th>
+                                <th class="p-3.5 border-r border-slate-300">수행 수준(채점기준)</th>
+                                <th class="p-3.5 w-20">배점</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700">
+                            
+                            <!-- 1. 섬유의 특성 이해하기 -->
+                            <tr class="hover:bg-slate-50 transition">
+                                <td rowspan="4" class="p-4 font-bold text-slate-900 border-r border-slate-300 bg-slate-50/50 align-middle text-center">
+                                    섬유의 특성 이해하기<br>
+                                    <span class="text-blue-600 text-xs">(10점)</span>
+                                </td>
+                                <td class="p-3 border-r border-slate-200">섬유를 3가지 이상 선택하여 그에 맞는 특성을 제시함.</td>
+                                <td class="p-3 font-bold text-center text-blue-600 bg-blue-50/30">10</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">섬유를 2가지 선택하여 그에 맞는 특성을 제시함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">8</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">섬유를 1가지 선택하여 그에 맞는 특성을 제시함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">6</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b-2 border-slate-300">
+                                <td class="p-3 border-r border-slate-200">섬유의 특성 이해하기에 참여하였으나 모든 조건을 만족시키지 못함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">4</td>
+                            </tr>
+
+                            <!-- 2. 섬유 특성에 맞는 세탁 방법 제시하기 -->
+                            <tr class="hover:bg-slate-50 transition">
+                                <td rowspan="4" class="p-4 font-bold text-slate-900 border-r border-slate-300 bg-slate-50/50 align-middle text-center">
+                                    섬유 특성에 맞는<br>세탁 방법 제시하기<br>
+                                    <span class="text-blue-600 text-xs">(10점)</span>
+                                </td>
+                                <td class="p-3 border-r border-slate-200">섬유 특성에 맞는 세탁 방법을 3가지 이상 제시함.</td>
+                                <td class="p-3 font-bold text-center text-blue-600 bg-blue-50/30">10</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">섬유 특성에 맞는 세탁 방법을 2가지 제시함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">8</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">섬유 특성에 맞는 세탁 방법을 1가지 제시함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">6</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition border-b-2 border-slate-300">
+                                <td class="p-3 border-r border-slate-200">섬유 특성에 맞는 세탁 방법 제시하기에 참여하였으나 모든 조건을 만족시키지 못함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">4</td>
+                            </tr>
+
+                            <!-- 3. 건강과 환경을 고려한 의복의 세탁과 관리 방안 실천하기 -->
+                            <tr class="hover:bg-slate-50 transition">
+                                <td rowspan="4" class="p-4 font-bold text-slate-900 border-r border-slate-300 bg-slate-50/50 align-middle text-center">
+                                    건강과 환경을 고려한<br>의복의 세탁과 관리<br>방안 실천하기<br>
+                                    <span class="text-blue-600 text-xs">(10점)</span>
+                                </td>
+                                <td class="p-3 border-r border-slate-200">건강과 환경을 고려한 의복의 세탁과 관리 방안 3가지 이상 포함함.</td>
+                                <td class="p-3 font-bold text-center text-blue-600 bg-blue-50/30">10</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">건강과 환경을 고려한 의복의 세탁과 관리 방안 2가지를 포함함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">8</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">건강과 환경을 고려한 의복의 세탁과 관리 방안 1가지를 포함함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">6</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="p-3 border-r border-slate-200">건강과 환경을 고려한 의복의 세탁과 관리 방안 실천하기에 참여하였으나 모든 조건을 만족시키지 못함.</td>
+                                <td class="p-3 font-bold text-center text-slate-600">4</td>
+                            </tr>
+
+                            <!-- 미응시 및 기본점수 규정 -->
+                            <tr class="bg-amber-50/50 text-slate-800">
+                                <td colspan="2" class="p-3 border-r border-slate-300 font-semibold">
+                                    수행활동에는 참여하였으나 수행과제물 미제출(백지활동지 제출 포함)한 경우 <span class="text-amber-800 font-bold">(기본점수)</span>
+                                </td>
+                                <td class="p-3 font-bold text-center text-amber-700">12</td>
+                            </tr>
+                            <tr class="bg-amber-50/50 text-slate-800">
+                                <td colspan="2" class="p-3 border-r border-slate-300 font-semibold">
+                                    본인의 의사에 의한 수행평가 미응시자: 기본점수의 차하점
+                                </td>
+                                <td class="p-3 font-bold text-center text-amber-700">11</td>
+                            </tr>
+                            <tr class="bg-amber-50/50 text-slate-800">
+                                <td colspan="2" class="p-3 border-r border-slate-300 font-semibold">
+                                    학업성적관리규정에 의한 수행평가 미응시자(장기미인정결석): 기본점수의 차하점
+                                </td>
+                                <td class="p-3 font-bold text-center text-amber-700">10</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-start space-x-3 text-xs text-blue-900">
+                    <i class="fa-solid fa-circle-info text-blue-600 text-lg mt-0.5"></i>
+                    <div>
+                        <span class="font-bold block mb-0.5">💡 만점(30점) 달성 체크 팁!</span>
+                        <span>[포스터 생성기]에서 각 항목별로 최소 <b>3개 이상의 내용</b>을 작성하시면 수행평가 루브릭 기준 최고 수준(10점+10점+10점 = 총 30점)에 자동 도달합니다.</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 📱 QR 코드 공유 모달 (팝업) -->
+    <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center relative border border-slate-200 animate-fadeIn">
+            <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 mb-1">📱 학생 접속용 QR코드</h3>
+            <p class="text-xs text-slate-500 mb-4">스마트폰 카메라로 아래 QR 코드를 스캔하세요.</p>
+            
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-center mb-4">
+                <img id="qr-code-img" src="" alt="QR Code" class="w-48 h-48 object-contain">
+            </div>
+
+            <div class="text-left space-y-1.5">
+                <label class="text-xs font-bold text-slate-600 block">현재 연결 URL (수정 가능)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="qr-url-input" class="flex-grow px-3 py-1.5 border rounded-lg text-xs font-mono bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button onclick="updateQrCode()" class="bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-lg whitespace-nowrap hover:bg-slate-700">생성</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 복사 성공 Toast 알림 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-msg" class="text-sm font-semibold">클립보드에 복사되었습니다!</span>
+    </div>
+
+    <!-- 스크립트 로직 -->
+    <script>
+        // 메인 탭 전환
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            ['escape', 'library', 'poster', 'rubric'].forEach(sec => {
+                document.getElementById('sec-' + sec).classList.add('hidden');
+            });
+            document.getElementById('sec-' + tabName).classList.remove('hidden');
+
+            if (tabName === 'poster') {
+                updatePosterPreview();
+            }
+        }
+
+        /* ================= 📱 QR 코드 팝업 제어 ================= */
+        function openQrModal() {
+            let currentUrl = window.location.href;
+            if (currentUrl.startsWith('file:')) {
+                currentUrl = 'https://example.com';
+            }
+            document.getElementById('qr-url-input').value = currentUrl;
+            updateQrCode();
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qr-modal').classList.add('hidden');
+        }
+
+        function updateQrCode() {
+            const url = document.getElementById('qr-url-input').value.trim();
+            if (!url) return;
+            const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+            document.getElementById('qr-code-img').src = qrImgUrl;
+        }
+
+
+        /* ================= 🔒 1. 방탈출 미션 게임 (업데이트 버전 & 단계별 넘어가는 UX) ================= */
+        const escapeKeys = ["3", "8", "1", "5", "7", "2", "9"];
+        let userEscapeKeys = ["?", "?", "?", "?", "?", "?", "?"];
+        let solvedCount = 0;
+        let timerSeconds = 1800; // 30분
+        let timerInterval = null;
+
+        function startEscapeGame() {
+            showEscapeScreen('scr-q1');
+            startEscapeTimer();
+        }
+
+        function showEscapeScreen(scrId) {
+            document.querySelectorAll('.escape-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(scrId).classList.add('active');
+        }
+
+        function startEscapeTimer() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                let m = Math.floor(timerSeconds / 60);
+                let s = timerSeconds % 60;
+                document.getElementById('escape-timer').innerText = `⏱ ${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    alert('⏰ 제한시간이 종료되었습니다! 다시 도전해보세요.');
+                }
+            }, 1000);
+        }
+
+        function unlockEscapeKey(idx) {
+            userEscapeKeys[idx] = escapeKeys[idx];
+            let slot = document.querySelector(`.key-slot[data-slot="${idx}"]`);
+            if (slot) {
+                slot.innerText = escapeKeys[idx];
+                slot.classList.add('got');
+            }
+            solvedCount = Math.max(solvedCount, idx + 1);
+            document.getElementById('escape-progress-text').innerText = `미션 달성: ${solvedCount} / 7`;
+            document.getElementById('escape-progress-bar').style.width = `${(solvedCount / 7) * 100}%`;
+            playBeep();
+        }
+
+        function toggleEscapeHint(n) {
+            let h = document.getElementById(`esc-hint-${n}`);
+            h.classList.toggle('hidden');
+        }
+
+        // Q1 검증
+        function checkQ1() {
+            let sel = document.querySelector('input[name="esc-q1"]:checked');
+            let fb = document.getElementById('esc-fb-1');
+            if (sel && sel.value === '2') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 첫 번째 암호 숫자 [3]을 수집했습니다.';
+                unlockEscapeKey(0);
+                setTimeout(() => showEscapeScreen('scr-q2'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 양모 털비늘의 축융성 특징을 생각해보세요!';
+            }
+        }
+
+        // Q2 검증
+        function checkQ2() {
+            let sel = document.querySelector('input[name="esc-q2"]:checked');
+            let fb = document.getElementById('esc-fb-2');
+            if (sel && sel.value === '5') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 두 번째 암호 숫자 [8]을 수집했습니다.';
+                unlockEscapeKey(1);
+                setTimeout(() => showEscapeScreen('scr-q3'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 면의 원료는 식물(목화솜)입니다!';
+            }
+        }
+
+        // Q3 검증
+        function checkQ3() {
+            let val = document.getElementById('esc-input-q3').value.trim().replace(/\s+/g, '');
+            let fb = document.getElementById('esc-fb-3');
+            if (val === '폴리에스터' || val === '폴리에스테르') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 세 번째 암호 숫자 [1]을 수집했습니다.';
+                unlockEscapeKey(2);
+                setTimeout(() => showEscapeScreen('scr-q4'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 가장 많이 사용되는 대표적 합성 섬유를 생각해보세요! (답: 폴리에스터)';
+            }
+        }
+
+        // Q4 검증
+        function checkQ4() {
+            let sel = document.querySelector('input[name="esc-q4"]:checked');
+            let fb = document.getElementById('esc-fb-4');
+            if (sel && sel.value === '4') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 네 번째 암호 숫자 [5]를 수집했습니다.';
+                unlockEscapeKey(3);
+                setTimeout(() => showEscapeScreen('scr-q5'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 날실과 씨실을 교차해 만든 옷감은 직물입니다.';
+            }
+        }
+
+        // Q5 검증
+        function checkQ5() {
+            let sel = document.querySelector('input[name="esc-q5"]:checked');
+            let fb = document.getElementById('esc-fb-5');
+            if (sel && sel.value === '2') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 다섯 번째 암호 숫자 [7]을 수집했습니다.';
+                unlockEscapeKey(4);
+                setTimeout(() => showEscapeScreen('scr-q6'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 본 빨래 전에 애벌빨래를 먼저 진행해야 합니다.';
+            }
+        }
+
+        // Q6 검증
+        function checkQ6() {
+            let val = document.getElementById('esc-input-q6').value.trim().replace(/\s+/g, '');
+            let fb = document.getElementById('esc-fb-6');
+            if (val === '거풍' || val === '바람쐬기' || val === '거풍(바람쐬기)') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 여섯 번째 암호 숫자 [2]를 수집했습니다.';
+                unlockEscapeKey(5);
+                setTimeout(() => showEscapeScreen('scr-q7'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 바람에 쐬어 습기를 제거하는 방법은 거풍(바람쐬기)입니다.';
+            }
+        }
+
+        // Q7 검증
+        function checkQ7() {
+            let sel = document.querySelector('input[name="esc-q7"]:checked');
+            let fb = document.getElementById('esc-fb-7');
+            if (sel && sel.value === '2') {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+                fb.innerText = '🎉 정답입니다! 마지막 암호 숫자 [9]를 수집했습니다.';
+                unlockEscapeKey(6);
+                setTimeout(() => showEscapeScreen('scr-final'), 1200);
+            } else {
+                fb.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-800 border border-red-300 block';
+                fb.innerText = '❌ 오답입니다. 모섬유는 겉면에 헝겊을 덮고 다려야 합니다.';
+            }
+        }
+
+        // 키패드 제어
+        let passInput = "";
+        function pressPad(num) {
+            if (passInput.length < 7) {
+                passInput += num;
+                document.getElementById('doorlock-display').innerText = passInput.padEnd(7, '_');
+            }
+        }
+        function clearPad() {
+            passInput = "";
+            document.getElementById('doorlock-display').innerText = "_______";
+        }
+        function unlockDoor() {
+            let fb = document.getElementById('esc-fb-final');
+            if (passInput === "3815729") {
+                fb.className = 'p-4 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-900 border border-emerald-400 block';
+                fb.innerText = '🎊 찰칵! 중앙 제어 장치가 해제되었습니다! 의복 관리 연구소 탈출 성공!';
+                fireConfetti();
+            } else {
+                fb.className = 'p-4 rounded-xl text-sm font-bold bg-red-100 text-red-900 border border-red-300 block';
+                fb.innerText = '❌ 암호가 일치하지 않습니다! 상단에서 수집한 7자리 숫자를 확인하세요. (힌트: 3815729)';
+            }
+        }
+
+        function restartEscapeGame() {
+            passInput = "";
+            solvedCount = 0;
+            userEscapeKeys = ["?", "?", "?", "?", "?", "?", "?"];
+            document.querySelectorAll('.key-slot').forEach(s => {
+                s.innerText = '?';
+                s.classList.remove('got');
+            });
+            document.getElementById('escape-progress-bar').style.width = '0%';
+            document.getElementById('escape-progress-text').innerText = '미션 달성: 0 / 7';
+            document.getElementById('doorlock-display').innerText = "_______";
+            showEscapeScreen('scr-intro');
+        }
+
+        function playBeep() {
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                osc.connect(ctx.destination);
+                osc.frequency.value = 587.33;
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch(e){}
+        }
+
+        function fireConfetti() {
+            for (let i = 0; i < 50; i++) {
+                let c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#ff8fab','#ffd166','#8ee3c8','#7765e3'][Math.floor(Math.random()*4)];
+                c.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+
+        /* ================= 📚 2. 의복 지식백과 ================= */
+        const libraryData = [
+            { category: 'natural', tag: '천연·식물성', title: '면 섬유 (Cotton)', page: '71쪽', text: '목화솜이 원료. 흡습성이 뛰어나 위생적이며 물에 젖으면 강도가 커짐. 삶기 세탁 가능.' },
+            { category: 'natural', tag: '천연·식물성', title: '마 섬유 (Linen)', page: '71쪽', text: '마 식물 줄기가 원료. 통기성이 좋아 시원하고 차가운 촉감. 구김이 잘 생김.' },
+            { category: 'natural', tag: '천연·동물성', title: '모 섬유 (Wool)', page: '71쪽', text: '양털이 원료. 보온성과 탄성이 좋음. 열·습기·마찰에 의해 축융성(줄어듦)이 발생함.' },
+            { category: 'natural', tag: '천연·동물성', title: '견 섬유 (Silk)', page: '71쪽', text: '누에고치가 원료. 은은한 광택과 부드러운 촉감. 햇빛과 열에 약하므로 드라이클리닝.' },
+            { category: 'manmade', tag: '인조·재생', title: '레이온 & 아세테이트', page: '72쪽', text: '목재 펄프 원료. 촉감이 매끄럽고 광택이 좋으나 물에 젖으면 매우 약해져 드라이클리닝 권장.' },
+            { category: 'manmade', tag: '인조·합성', title: '나일론 & 폴리에스터', page: '72쪽', text: '석유 원료. 강도가 세고 구김이 적음. 흡습성이 낮아 정전기가 잘 생기며 열가소성을 가짐.' },
+            { category: 'fabric', tag: '옷감 4종', title: '직물 vs 편성물(니트)', page: '73쪽', text: '직물: 세로실과 가로실을 교차. 편성물: 실로 고리를 만들어 짜서 신축성과 보온성이 높음.' },
+            { category: 'fabric', tag: '옷감 4종', title: '펠트 vs 부직포', page: '73쪽', text: '펠트: 양모 축융성 활용. 부직포: 실을 거치지 않고 섬유를 접착제나 열로 직접 붙여 만듦.' },
+            { category: 'laundry', tag: '세탁·다림질', title: '물세탁 5단계 원리', page: '74쪽', text: '1.세제분산 ➔ 2.침투 ➔ 3.친유성 흡착 ➔ 4.팽윤·분리 ➔ 5.유화·분산 단계로 때 제거.' },
+            { category: 'laundry', tag: '세탁·다림질', title: '섬유별 다림질 온도', page: '75쪽', text: '합성/재생(80~120℃) < 모/견(140~160℃) < 면/마(180~210℃). 혼방은 열에 약한 섬유 기준.' }
+        ];
+
+        function renderLibrary(filter = 'all') {
+            const container = document.getElementById('library-cards-container');
+            container.innerHTML = '';
+
+            const items = filter === 'all' ? libraryData : libraryData.filter(d => d.category === filter);
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full">${item.tag}</span>
+                        <span class="text-xs text-slate-400 font-semibold">${item.page}</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-base mb-2">${item.title}</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">${item.text}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterLibrary(cat) {
+            document.querySelectorAll('.lib-filter').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            event.target.classList.remove('bg-slate-100', 'text-slate-600');
+            event.target.classList.add('bg-slate-800', 'text-white');
+
+            renderLibrary(cat);
+        }
+
+
+        /* ================= 🎨 3. 친환경 포스터 생성기 ================= */
+        function updatePosterPreview() {
+            const student = document.getElementById('poster-student').value;
+            const slogan = document.getElementById('poster-slogan').value;
+
+            // 섬유 특성
+            const fNames = document.querySelectorAll('.fiber-name');
+            const fDescs = document.querySelectorAll('.fiber-desc');
+            let fiberText = "";
+            let fiberCount = 0;
+            fNames.forEach((input, i) => {
+                if (input.value.trim() !== "") {
+                    fiberCount++;
+                    fiberText += `• ${input.value}: ${fDescs[i].value}\n`;
+                }
+            });
+
+            // 세탁 방법
+            const wTargets = document.querySelectorAll('.wash-target');
+            const wMethods = document.querySelectorAll('.wash-method');
+            let washText = "";
+            let washCount = 0;
+            wTargets.forEach((input, i) => {
+                if (input.value.trim() !== "") {
+                    washCount++;
+                    washText += `• ${input.value}: ${wMethods[i].value}\n`;
+                }
+            });
+
+            // 친환경 실천
+            const eTitles = document.querySelectorAll('.eco-title');
+            const eDetails = document.querySelectorAll('.eco-detail');
+            let ecoText = "";
+            let ecoCount = 0;
+            eTitles.forEach((input, i) => {
+                if (input.value.trim() !== "") {
+                    ecoCount++;
+                    ecoText += `• ${input.value}: ${eDetails[i].value}\n`;
+                }
+            });
+
+            // 예상 점수 계산 (루브릭 10+10+10 = 30점 만점)
+            let s1 = fiberCount >= 3 ? 10 : (fiberCount === 2 ? 8 : (fiberCount === 1 ? 6 : 4));
+            let s2 = washCount >= 3 ? 10 : (washCount === 2 ? 8 : (washCount === 1 ? 6 : 4));
+            let s3 = ecoCount >= 3 ? 10 : (ecoCount === 2 ? 8 : (ecoCount === 1 ? 6 : 4));
+            let total = s1 + s2 + s3;
+
+            document.getElementById('live-rubric-score').innerText = `${total} / 30`;
+            const statusEl = document.getElementById('live-score-status');
+            if (total === 30) {
+                statusEl.innerText = "✨ 만점 수준 충족! (3개 이상 포함)";
+                statusEl.className = "text-xs font-bold text-emerald-600 block";
+            } else {
+                statusEl.innerText = `⚠️ 현재 ${total}점 (항목별 3개 이상 작성 권장)`;
+                statusEl.className = "text-xs font-bold text-amber-600 block";
+            }
+
+            // 복사 텍스트 포맷
+            const fullContent = 
+`[친환경 세탁 케어 인포그래픽 포스터]
+■ 작성자: ${student}
+■ 슬로건: "${slogan}"
+
+1. 섬유의 특성 이해하기 (10점 항목)
+${fiberText}
+2. 섬유 특성에 맞는 세탁 방법 (10점 항목)
+${washText}
+3. 건강 & 환경 고려 실천방안 (10점 항목)
+${ecoText}`;
+
+            document.getElementById('poster-text-preview').innerText = fullContent;
+        }
+
+        function fillPosterExamples() {
+            document.getElementById('poster-student').value = "2학년 7반 30번 김혜린";
+            document.getElementById('poster-slogan').value = "환경을 지키는 똑똑한 옷 관리법";
+
+            // 섬유 예시 3개
+            const fNames = document.querySelectorAll('.fiber-name');
+            const fDescs = document.querySelectorAll('.fiber-desc');
+            fNames[0].value = "면 섬유"; fDescs[0].value = "흡습성이 좋아 위생적이며 물에 젖으면 강도가 더 세짐";
+            fNames[1].value = "모(양모) 섬유"; fDescs[1].value = "보온성이 우수하나 축융성으로 세탁 시 줄어들 수 있음";
+            fNames[2].value = "폴리에스터"; fDescs[2].value = "합성섬유로 구김이 적고 질기며 열가소성을 가짐";
+
+            // 세탁 예시 3개
+            const wTargets = document.querySelectorAll('.wash-target');
+            const wMethods = document.querySelectorAll('.wash-method');
+            wTargets[0].value = "면·마 세탁"; wMethods[0].value = "물세탁 및 고온 삶기 가능, 180~210℃ 다림질";
+            wTargets[1].value = "모·견 세탁"; wMethods[1].value = "드라이클리닝 권장, 140~160℃ 헝겊 덮고 다림질";
+            wTargets[2].value = "합성섬유 세탁"; wMethods[2].value = "미지근한 물 세탁, 열에 약하므로 고온 건조 금지";
+
+            // 친환경 예시 3개
+            const eTitles = document.querySelectorAll('.eco-title');
+            const eDetails = document.querySelectorAll('.eco-detail');
+            eTitles[0].value = "세제 정량 사용"; eDetails[0].value = "세제 과다 사용을 줄여 수질 오염을 방지함";
+            eTitles[1].value = "애벌빨래 활용"; eDetails[1].value = "미지근한 물에 잠시 담가 세탁 시간과 세제 절약";
+            eTitles[2].value = "거풍 및 방습 보관"; eDetails[2].value = "드라이 후 비닐을 벗겨 휘발성 용제를 날려 보관";
+
+            updatePosterPreview();
+            showToast("✨ 예시 내용 3개로 완벽히 채워졌습니다!");
+        }
+
+        function copyPosterText() {
+            const text = document.getElementById('poster-text-preview').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("📋 포스터 내용이 클립보드에 복사되었습니다! Canva로 이동하세요.");
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // 초기화
+        window.onload = function() {
+            renderLibrary();
+            updatePosterPreview();
+        };
+    </script>
+</body>
+</html>
